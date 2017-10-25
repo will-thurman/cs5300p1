@@ -1,35 +1,34 @@
 from lark import Lark, Transformer
 
-query_grammar = '''
+query_grammar = r'''
 
-  query: s_clause
+  query: f_clause
 
-  s_clause: "SELECT" expr [("," expr)*]
+  s_clause: "SELECT" num_expr ("," num_expr)*
 
-  f_clause: "FROM" REL [("," REL)*]
+  f_clause: "FROM" REL ("," REL)*
 
-  w_clause: "WHERE" expr [ (("AND"|"OR") expr)* (("IN"|"EXISTS"|"NOT IN"|"NOT EXISTS") query)*]]
+  w_clause: "WHERE" expr (("AND"|"OR") expr)* (("AND"|"OR")? ("IN"|"EXISTS"|"NOT IN"|"NOT EXISTS") query)*
 
-  gb_clause:
+  gb_clause: "TODO"
 
-  h_clause:
+  h_clause: "TODO"
 
-  ob_clause:
+  ob_clause: "TODO"
   
   expr: bool_expr
       | num_expr
 
-  bool_expr: ATTR COMP ATTR
+  bool_expr: ATTR ((COMP ATTR)|(COMP CONST))*
 
-  num_expr: ATTR [ (OPER ATTR)*]
+  num_expr: ATTR ((OPER ATTR)|(OPER CONST))*
 
-  ATTR: (LETTER)+ ["_"] ["." (LETTER)+]
+  ATTR: CNAME | CNAME "." CNAME | 
 
-  REL: (LETTER)+ ["_"] (LETTER)* [ (AS (LETTER)+)*]
+  REL: ((CNAME)|(CNAME "AS" CNAME)|(CNAME CNAME))
 
   CONST: STRING
-       | INT
-       | 
+       | INT 
 
   OPER: "+"
       | "-"
@@ -49,7 +48,7 @@ query_grammar = '''
           | "MAX(" ATTR ")"
           | "AVG(" ATTR ")"
 
-  %import common.LETTER
+  %import common.CNAME
   %import common.ESCAPED_STRING -> STRING
   %import common.SIGNED_INT -> INT
   %import common.WS
@@ -59,4 +58,5 @@ query_grammar = '''
 def parse(text):
   """ Parses sql and returns the resulting tree"""
   sql_parser = Lark(query_grammar, start="query")
-  return sql_parser.parse
+  return sql_parser.parse(text.upper())
+

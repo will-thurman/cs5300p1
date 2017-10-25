@@ -1,5 +1,5 @@
 from lark import Lark
-json_parser = Lark(r"""
+json_parser = Lark("""
     value: dict
          | list
          | ESCAPED_STRING
