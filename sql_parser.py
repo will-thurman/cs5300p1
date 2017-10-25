@@ -1,14 +1,14 @@
-from lark import Lark
+from lark import Lark, Transformer
 
-grammar = '''
+query_grammar = '''
 
-  query: s_clause f_clause [w_clause]
+  query: s_clause
 
   s_clause: "SELECT" expr [("," expr)*]
 
   f_clause: "FROM" REL [("," REL)*]
 
-  w_clause: "WHERE" c_expr [ (("AND"|"OR") c_expr)* [("IN"|"EXISTS"|"NOT EXISTS"]]
+  w_clause: "WHERE" expr [ (("AND"|"OR") expr)* (("IN"|"EXISTS"|"NOT IN"|"NOT EXISTS") query)*]]
 
   gb_clause:
 
@@ -20,14 +20,16 @@ grammar = '''
       | num_expr
 
   bool_expr: ATTR COMP ATTR
-      
-  c_expr: ATTR COMP ATTR
 
-  attr_list: ATTR [("," ATTR)*]
+  num_expr: ATTR [ (OPER ATTR)*]
 
-  ATTR: (LETTER)+ ["." (LETTER)+]
+  ATTR: (LETTER)+ ["_"] ["." (LETTER)+]
 
-  REL: (LETTER)+ [ (AS (LETTER)+)*]
+  REL: (LETTER)+ ["_"] (LETTER)* [ (AS (LETTER)+)*]
+
+  CONST: STRING
+       | INT
+       | 
 
   OPER: "+"
       | "-"
@@ -48,8 +50,13 @@ grammar = '''
           | "AVG(" ATTR ")"
 
   %import common.LETTER
-  %import common.
-  %import common.DIGIT
+  %import common.ESCAPED_STRING -> STRING
+  %import common.SIGNED_INT -> INT
   %import common.WS
   %ignore WS
 '''
+
+def parse(text):
+  """ Parses sql and returns the resulting tree"""
+  sql_parser = Lark(query_grammar, start="query")
+  return sql_parser.parse
