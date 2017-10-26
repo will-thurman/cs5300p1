@@ -13,6 +13,7 @@ int line_num = 1;      // to keep line numbers
 
 %}
 %option noyywrap
+%option caseless
 
 WHITE      [ \t]
 DIGIT      [0-9]
@@ -26,31 +27,33 @@ ALPHANUM   [a-zA-Z0-9_]
 
 	/* KEYWORDS */
 
-"SELECT"		{writeToken("K_SEL"); return K_SEL;}
-"FROM"			{writeToken("K_FRM"); return K_FRM;}
-"WHERE"			{writeToken("K_WHR"); return K_WHR;}
-"GROUP BY"		{writeToken("K_GBY"); return K_GBY;}
-"HAVING"		{writeToken("K_HVG"); return K_HVG;}
-"ORDER BY"		{writeToken("K_OBY"); return K_OBY;}
-"UNION"			{writeToken("K_UNI"); return K_UNI;}
-"INTERSECT"		{writeToken("K_INT"); return K_INT;}
-"AS"			{writeToken("K_AS"); return K_AS;}
-"IN"|"NOT IN"	{writeToken("K_IN"); return K_IN;}
-"EXISTS"|"NOT EXISTS"		{writeToken("K_EXS"); return K_EXS;}
-"AND"|"OR"					{writeToken("K_CHAIN"); return K_CHAIN;}
-"SUM"|"COUNT"|"MIN"|"MAX"|"AVG"		{writeToken("K_AGR"); return K_AGR;}
-"("			{writeToken("K_LPAR"); return K_LPAR;}
-")"			{writeToken("K_RPAR"); return K_RPAR;}
-","			{writeToken("K_COM"); return K_COM;}
+"SELECT"		{return K_SEL;}
+"FROM"			{return K_FRM;}
+"WHERE"			{return K_WHR;}
+"GROUP BY"		{return K_GBY;}
+"HAVING"		{return K_HVG;}
+"ORDER BY"		{return K_OBY;}
+"UNION"			{return K_UNI;}
+"INTERSECT"		{return K_INT;}
+"AS"			{return K_AS;}
+"IN"|"NOT IN"	{return K_IN;}
+"CONTAINS"		{return K_CON;}
+"EXCEPT"		{return K_EXC;}
+"EXISTS"|"NOT EXISTS"		{return K_EXS;}
+"AND"|"OR"					{return K_CHAIN;}
+"SUM"|"COUNT"|"MIN"|"MAX"|"AVE"		{return K_AGR;}
+"("			{return K_LPAR;}
+")"			{return K_RPAR;}
+","			{return K_COM;}
 
 
 	/* COMPLEX TOKENS */
 
-{ALPHA}{ALPHANUM}*(\.{ALPHA}{ALPHANUM}*)?	{writeToken("T_COL"); return T_COL;}
-[-]?{DIGIT}+(\.{DIGIT})? 	{writeToken("T_NUM"); return T_NUM;}
-(\"[^\s\n"]*\"|'[^\s\n']*')				{writeToken("T_STR"); return T_STR;}
-"+"|"-"|"*"|"/"				{writeToken("T_ARTH_OP"); return T_ARTH_OP;}
-"="|"<"|">"|"<="|">="|"<>"	{writeToken("T_COMP_OP"); return T_COMP_OP;}
+{ALPHA}{ALPHANUM}*(\.{ALPHA}{ALPHANUM}*)?|"*"	{return T_COL;}
+[-]?{DIGIT}+(\.{DIGIT})? 	{return T_NUM;}
+(\"[^\s\n"]*\"|'[^\s\n']*')				{return T_STR;}
+"+"|"-"|"*"|"/"				{return T_ARTH_OP;}
+"="|"<"|">"|"<="|">="|"<>"	{return T_COMP_OP;}
 
 %%
 

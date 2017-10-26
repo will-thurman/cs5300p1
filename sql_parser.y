@@ -28,22 +28,28 @@ int yyerror(const char *p);
 %token K_INT
 %token K_AS
 %token K_IN
+%token K_CON
 %token K_EXS
 %token K_LPAR
 %token K_RPAR
 %token K_COM
 %token K_AGR
+%token K_EXC
 
 %% /* Grammar */
 
 querySeq: query
 	| query K_UNI querySeq
 	| query K_INT querySeq
-	|
+	| query K_CON querySeq
+	| query K_EXC querySeq
 	;
 
 query: sClause fClause
 	| sClause fClause wClause
+	| sClause fClause wClause gClause
+	| sClause fClause wClause gClause hClause
+	| K_LPAR query K_RPAR
 	;
 	
 sClause: K_SEL colList
@@ -58,9 +64,18 @@ wClause: K_WHR condList
 	| K_WHR condList K_EXS K_LPAR querySeq K_RPAR
 	;
 	
+gClause: K_GBY colList
+	;
+
+hClause: K_HVG condList
+	;
+
+oClause: K_OBY colList
 
 relList: T_COL
+	| T_COL T_COL
 	| T_COL K_AS T_COL
+	| T_COL T_COL K_COM relList
 	| T_COL K_COM relList
 	| T_COL K_AS T_COL K_COM relList
 	;
@@ -84,9 +99,13 @@ expr: const
 	| const T_ARTH_OP const expr
 	;
 
-c_expr: const T_COMP_OP const
+c_expr: expr
 	| expr T_COMP_OP const
+	| expr T_COMP_OP K_LPAR query K_RPAR
 	| const T_COMP_OP expr
+	| K_AGR K_LPAR expr K_RPAR T_COMP_OP const
+	| const T_COMP_OP K_AGR K_LPAR expr K_RPAR
+	| const T_COMP_OP K_LPAR query K_RPAR
 	;
 
 const: T_NUM
@@ -103,12 +122,12 @@ int yyerror(const char *p)
 int main()
 {
   int failcode;
-  cout << "Hello Flex + Bison" << endl;
+  cout << "Parsing SQL..." << endl;
   failcode = yyparse();
 
   if (failcode)
-    cout << "INVALID!" << endl;
+    cout << "INVALID SQL!" << endl;
   else
-    cout << "CORRECT" << endl;
+    cout << "VALID SQL" << endl;
   return 0;
 }

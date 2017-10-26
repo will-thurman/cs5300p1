@@ -25,8 +25,11 @@ echo "Enter the query, CTRL-D when done"
 
 cat /dev/stdin >> test.txt
 
+echo
+echo "---------------------------------"
 echo "Query"
 cat test.txt
 echo
+echo "---------------------------------"
 echo "Results"
 sqlComp < test.txt

@@ -5,5 +5,3 @@ Boats.color=’red’
 INTERSECT
 SELECT sname
 FROM Sailors, Boats, Reserves
-WHERE Sailors.sid=Reserves.sid AND Reserves.bid=Boats.bid AND
-Boats.color=’green’
