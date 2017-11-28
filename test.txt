@@ -1,9 +1,4 @@
-SELECT S.sname
-FROM Sailors AS S
-WHERE S.sid IN ((SELECT R.sid
- FROM Reserve AS R, Boats AS B
- WHERE R.bid = B.bid AND B.color = 'red')
- INTERSECT
- (SELECT R2.sid
- FROM Reserve AS R2, Boats AS B2
- WHERE R2.bid = B2.bid AND B2.color = 'green'))
+SELECT B.bid, Count (*) AS reservationcount
+FROM Boats B, Reserves R
+WHERE R.bid=B.bid AND B.color = ‘red’
+GROUP BY B.bid

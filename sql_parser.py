@@ -3,7 +3,7 @@ import sys
 
 query_grammar = r'''
   
-  queryseq: query (("UNION"|"INTERSECT"|"EXCEPT"|"CONTAINS") query)*
+  queryseq: query (["UNION"|"INTERSECT"|"EXCEPT"|"CONTAINS"] query)*
 
   query: sclause fclause
     | sclause fclause wclause
@@ -66,7 +66,7 @@ query_grammar = r'''
 
   ident: CNAME
 
-  string: /\"[^\"]*\"/|/'[^']*'/|/’[^’]*’/
+  string: /\"[^\"]*\"/|/'[^']*'/|/‘|[^’]*’/
   
   num: ("+"|"-")? NUMBER
 
@@ -132,8 +132,11 @@ class ToDict(Transformer):
   def const(self, c):
     return c[0]
 
+def fclause_check(query):
+  
+  return True
 
-def semantic_analysis(d, t):
+def semantic_analysis(d):
   table_aliases = {}
   tables = []
   selected = []
@@ -141,6 +144,7 @@ def semantic_analysis(d, t):
   tables_attrs = {}
   query_type = None
   for query in d:
+
     if 'fclause' in query:
       for rel in query['fclause']:
         alias = ""
@@ -149,15 +153,16 @@ def semantic_analysis(d, t):
           table = rel[0].lower()
         else:
           table = rel.lower()
-        if table.lower() not in t:
+        if table.lower() not in TABLES:
           print(table, "is not a valid table, stopping analysis")
           sys.exit(1)
         if alias != "":
           table_aliases[alias] = table
 
         tables.append(table)
-        tables_attrs[table] = t[table].keys()
+        tables_attrs[table] = TABLES[table].keys()
       print("FROM clause correct")
+
     
     if 'sclause' in query:
       for attr in query['sclause']:
@@ -199,7 +204,7 @@ def semantic_analysis(d, t):
           sys.exit(1)
 
         if len(selected) == 1:
-          query_type = t[selected[0][0]][selected[0][1]]
+          query_type = TABLES[selected[0][0]][selected[0][1]]
         print("Select clause ok")
 
     if 'wclause' in query:
@@ -215,7 +220,7 @@ def semantic_analysis(d, t):
         if type(rhs) is str:
           rhs = rhs.lower()
         if type(lhs) is list and type(lhs[0]) is dict:
-          lhs_type = semantic_analysis(lhs, t)
+          lhs_type = semantic_analysis(lhs)
         elif type(lhs) is str:
           lhs = lhs.lower()
 
@@ -277,31 +282,23 @@ def semantic_analysis(d, t):
           print(l_attribute, "is not a valid attribute in comparison, stopping analysis")
           sys.exit(1)
         if not rconst:
-          rhs_type = t[rhs_ref[0]][rhs_ref[1]]
+          rhs_type = TABLES[rhs_ref[0]][rhs_ref[1]]
         if not lconst:
-          lhs_type = t[lhs_ref[0]][lhs_ref[1]]
+          lhs_type = TABLES[lhs_ref[0]][lhs_ref[1]]
         if rhs_type != lhs_type:
           print("Invalid comparison between", rhs_type, "and", lhs_type, "stopping analysis")
           sys.exit(1)
       print("Where clause good to go")
     if 'gclause' in query:
-      pass
+      pass # TODO
     if 'hclause' in query:
-      pass
-
+      pass # TODO
 
   return query_type
 
-
-
-
-
-
-      
-
-
 def main():
-  tables = {
+  global TABLES
+  TABLES = {
     'sailors' : {
       'sid' : 'integer',
       'sname' : 'string',
@@ -325,12 +322,12 @@ def main():
   try:
     tree = parse(query)
     print("Valid query!")
-    print("Performing semantic analysis...")
-    parsed = ToDict().transform(tree)
-    semantic_analysis(parsed, tables)
   except common.ParseError:
     print("Could not parse the query.")
     sys.exit(1)
+  print("Performing semantic analysis...")
+  parsed = ToDict().transform(tree)
+  semantic_analysis(parsed)
 
 if __name__ == "__main__":
   main()
